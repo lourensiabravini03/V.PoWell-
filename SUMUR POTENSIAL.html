@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-PoWell | Simulasi Sumur Potensial</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        /* VARIABEL TEMA */
+        :root {
+            --bg-main: #0a0a0a; --bg-panel: #141414; --bg-card: #1f1f1f;
+            --text-main: #ffffff; --text-muted: #aaaaaa; --border-color: #333333;
+            --accent: #00ffcc; --accent-hover: #00ccaa; --accent-glow: rgba(0, 255, 204, 0.4);
+            --canvas-bg: #050505; --neon-glow: 0 0 8px;
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f0f2f5; --bg-panel: #ffffff; --bg-card: #f8f9fa;
+            --text-main: #212529; --text-muted: #6c757d; --border-color: #ced4da;
+            --accent: #00897b; --accent-hover: #00695c; --accent-glow: rgba(0, 137, 123, 0.2);
+            --canvas-bg: #fdfdfd; --neon-glow: 0 0 0px;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-main); color: var(--text-main); margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; transition: 0.3s; }
+        
+        /* HEADER & NAVIGASI */
+        header { background-color: var(--bg-panel); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 15px;}
+        
+        .logo-section { display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .logo-section img { height: 45px; filter: drop-shadow(0 0 2px rgba(255,255,255,0.7)); }
+        .logo-section h1 { font-size: 1.6rem; color: var(--accent); margin: 0; text-shadow: var(--neon-glow) var(--accent); letter-spacing: 1px; }
+        
+        nav { display: flex; gap: 5px; flex-wrap: wrap; }
+        nav button { background: none; border: none; color: var(--text-muted); font-size: 1.05rem; font-weight: bold; cursor: pointer; padding: 8px 15px; border-radius: 8px; transition: 0.3s; }
+        nav button:hover { color: var(--accent); background: rgba(0, 229, 255, 0.1); }
+        nav button.active { color: var(--accent); background: rgba(0, 229, 255, 0.15); border-bottom: 2px solid var(--accent); }
+
+        .btn-theme { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-theme:hover { background: var(--border-color); }
+
+        /* SISTEM HALAMAN */
+        .page { display: none; padding: 30px; flex: 1; animation: fadeIn 0.4s ease-in-out; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* HALAMAN BERANDA */
+        .hero { text-align: center; padding: 60px 20px; max-width: 900px; margin: 0 auto; }
+        .hero h2 { font-size: 3.2rem; color: var(--accent); margin-bottom: 20px; text-shadow: var(--neon-glow) var(--accent); }
+        .hero p { font-size: 1.15rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 20px; text-align: justify; }
+        .btn-primary { background-color: var(--accent); color: #000; border: none; padding: 15px 35px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: var(--neon-glow) var(--accent); margin-top: 20px; }
+        .btn-primary:hover { transform: scale(1.05); }
+        .feature-box { background: var(--bg-panel); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; margin-top: 30px; text-align: left; }
+
+        /* HALAMAN MATERI & ABOUT US */
+        .grid-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 1100px; margin: 0 auto; }
+        .resource-card { background: var(--bg-panel); padding: 25px; border-radius: 12px; border: 1px solid var(--border-color); text-decoration: none; color: inherit; transition: 0.3s; border-left: 4px solid var(--accent); }
+        .resource-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); border-left-color: #ff9800; }
+        .member-card { background: var(--bg-panel); padding: 30px 20px; border-radius: 16px; text-align: center; border: 1px solid var(--border-color); transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .member-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+        .member-avatar { width: 90px; height: 90px; background: linear-gradient(135deg, var(--accent), #ff00ff); border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: bold; color: #000; box-shadow: var(--neon-glow) var(--accent); }
+        .ig-link { display: inline-block; background: var(--bg-card); color: var(--accent); text-decoration: none; padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; border: 1px solid var(--border-color); transition: 0.2s; margin-top: 5px;}
+        .ig-link:hover { background: var(--accent); color: #000; }
+
+        /* SIMULASI UTAMA */
+        .sim-container { display: flex; gap: 20px; height: calc(100vh - 280px); min-height: 520px; }
+        .controls-panel { flex: 0 0 290px; background-color: var(--bg-panel); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        
+        .slider-group { display: flex; flex-direction: column; gap: 5px; }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; }
+        .slider-header label { font-size: 0.9rem; color: var(--text-muted); font-weight: bold; }
+        .live-val { font-size: 1.1rem; font-weight: bold; background: var(--bg-card); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color); color: var(--accent); }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: var(--accent); }
+
+        .playback-controls { display: flex; gap: 10px; }
+        .btn-action { flex: 1; padding: 10px 5px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+        .btn-action.active { filter: brightness(0.6); box-shadow: inset 0 3px 6px rgba(0,0,0,0.6); }
+
+        .plot-area { flex: 1; background-color: var(--canvas-bg); border: 1px solid var(--border-color); border-radius: 8px; position: relative; overflow: hidden; box-shadow: var(--canvas-shadow); }
+        /* KANVAS KINI DIKUNCI AGAR TIDAK BISA DI ZOOM/GESER */
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; }
+        
+        .measurements-panel { background-color: var(--bg-panel); padding: 20px; margin-top: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .data-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
+        .card { background-color: var(--bg-card); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center; }
+        .card-header { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; font-weight: bold; letter-spacing: 0.5px; }
+        .card-value { font-size: 1.25rem; font-weight: bold; color: var(--text-main); font-family: monospace; }
+        
+        .equation-box { background: var(--bg-card); padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); text-align: center; color: #ffeb3b; overflow-x: auto; margin-top: 8px;}
+
+        @media (max-width: 800px) {
+            .sim-container { flex-direction: column; height: auto; }
+            .controls-panel { flex: none; height: auto; }
+            .plot-area { height: 400px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-section" onclick="showPage('home')">
+            <img src="Lambang_Universitas_Negeri_Medan.png" alt="Logo UNIMED" onerror="this.style.display='none'">
+            <h1>V-PoWell.</h1>
+        </div>
+        <nav>
+            <button onclick="showPage('home')" id="nav-home" class="active">Beranda</button>
+            <button onclick="showPage('materi')" id="nav-materi">Materi</button>
+            <button onclick="showPage('simulasi')" id="nav-simulasi">Simulasi</button>
+            <button onclick="showPage('about')" id="nav-about">About Us</button>
+        </nav>
+        <button id="themeToggle" class="btn-theme">☀️ Mode Siang</button>
+    </header>
+
+    <div id="home" class="page active">
+        <div class="hero">
+            <h2>Virtual Potential Well (V-PoWell)</h2>
+            <p>Selamat datang di laboratorium virtual mekanika kuantum. Simulasi ini memodelkan partikel mikroskopis (seperti elektron) yang terperangkap di dalam <b>Sumur Potensial Tak Hingga 1 Dimensi</b> (<i>Particle in a 1D Box</i>). Model ini adalah fondasi utama untuk memahami fenomena kuantisasi energi, keberadaan energi titik nol (<i>zero-point energy</i>), serta sifat gelombang-partikel dari materi.</p>
+            
+            <div class="feature-box">
+                <h3 style="color: var(--accent); margin-top: 0;">Fokus Analisis Anda:</h3>
+                <ul style="color: var(--text-muted); line-height: 1.8;">
+                    <li>Melihat visualisasi matematis murni dari Fungsi Gelombang Kuantum (&Psi;).</li>
+                    <li>Menganalisis Kepadatan Probabilitas (|&Psi;|<sup>2</sup>) posisi letak partikel.</li>
+                    <li>Mengobservasi bagaimana <b>Lebar Sumur (L)</b> dan <b>Massa (m)</b> mempengaruhi tingkat energi (E<sub>n</sub>) secara invers kuadratik.</li>
+                    <li>Melihat bukti perhitungan real-time berdasarkan konstanta Planck.</li>
+                </ul>
+            </div>
+            
+            <button class="btn-primary" onclick="showPage('simulasi')">Mulai Simulasi</button>
+        </div>
+    </div>
+
+    <div id="materi" class="page">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h2 style="color: var(--accent); font-size: 2.5rem; margin-bottom: 10px;">Sumber Belajar Referensi</h2>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Akses sumber literatur universitas global untuk pemahaman teori mekanika kuantum.</p>
+        </div>
+        
+        <div class="grid-layout">
+            <a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/resources/mit8_04s16_lecnotes11/" target="_blank" class="resource-card">
+                <h3 style="color: #ff9800;">MIT OpenCourseWare</h3>
+                <p>Catatan kuliah PDF Modul 11 mengenai Particle in a Box.</p>
+                <small style="color: var(--accent); font-weight: bold;">Kunjungi Situs &rarr;</small>
+            </a>
+            <a href="https://www-thphys.physics.ox.ac.uk/people/FabianEssler/QM/QM2022.pdf" target="_blank" class="resource-card">
+                <h3 style="color: #ff9800;">Oxford University</h3>
+                <p>Diktat perkuliahan mendalam tentang solusi persamaan Schrödinger.</p>
+                <small style="color: var(--accent); font-weight: bold;">Unduh PDF &rarr;</small>
+            </a>
+            <a href="https://www.youtube.com/results?search_query=particle+in+a+box+quantum+mechanics" target="_blank" class="resource-card">
+                <h3 style="color: #ff9800;">YouTube Edukasi</h3>
+                <p>Kumpulan penjelasan visual animasi mengenai fungsi gelombang.</p>
+                <small style="color: var(--accent); font-weight: bold;">Tonton Video &rarr;</small>
+            </a>
+        </div>
+    </div>
+
+    <div id="simulasi" class="page">
+        <div class="sim-container">
+            <div class="controls-panel">
+                <div class="slider-group">
+                    <div class="slider-header"><label>Tingkat Energi (n)</label><span class="live-val" id="lblN">1</span></div>
+                    <input type="range" id="nSlider" min="1" max="10" value="1">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header"><label>Lebar Sumur (L)</label><span class="live-val" id="lblL">10 nm</span></div>
+                    <input type="range" id="lSlider" min="5" max="40" value="10" step="1">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header"><label>Massa Partikel (m)</label><span class="live-val" id="lblM" style="color: #ff9800;">1.0 mₑ</span></div>
+                    <input type="range" id="mSlider" min="0.1" max="5.0" value="1.0" step="0.1">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header"><label>Amplitudo (A)</label><span class="live-val" id="lblA" style="color: #ff00ff;">1.0</span></div>
+                    <input type="range" id="aSlider" min="0.1" max="3.0" value="1.0" step="0.1">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header"><label>Kecepatan Visual</label><span class="live-val" id="lblSpeed" style="color: #aaa;">30</span></div>
+                    <input type="range" id="speedSlider" min="1" max="100" value="30">
+                </div>
+                
+                <div class="playback-controls">
+                    <button class="btn-action" id="btnPlay" style="background-color: #00c853;">▶ Start</button>
+                    <button class="btn-action active" id="btnPause" style="background-color: #ff9800;">⏸ Pause</button>
+                    <button class="btn-action" id="btnReset" style="background-color: #d50000;">⟲ Reset</button>
+                </div>
+
+                <hr style="border-color: var(--border-color); margin: 5px 0;">
+                
+                <div>
+                    <h4 style="margin: 0 0 10px 0; color: var(--accent); font-size: 0.9rem;">🔑 Model Persamaan</h4>
+                    <div class="equation-box">$$ \Psi(x,t) = A \sqrt{\frac{2}{L}} \sin\left(\frac{n\pi x}{L}\right) e^{-i\omega t} $$</div>
+                    <div class="equation-box" style="margin-top: 10px;">$$ E_n = \frac{n^2 h^2}{8mL^2} $$</div>
+                </div>
+            </div>
+
+            <div class="plot-area" id="canvasContainer">
+                <div style="position: absolute; bottom: 15px; left: 15px; color: var(--text-muted); font-size: 0.85rem; z-index: 10; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 4px;">
+                    Arahkan Kursor (Hover) untuk Inspeksi Nilai &Psi; Aktual
+                </div>
+                <canvas id="quantumCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="measurements-panel">
+            <h4 style="margin: 0 0 15px 0; color: var(--accent);">📊 Hasil Perhitungan Real-Time</h4>
+            <div class="data-cards">
+                <div class="card"><div class="card-header">ENERGI (E<sub>n</sub>)</div><div class="card-value" id="valEnergy" style="color: #ffeb3b;">0.000</div><div class="card-unit">eV</div></div>
+                <div class="card"><div class="card-header">PANJANG GEL. (&lambda;)</div><div class="card-value" id="valWavelength" style="color: #00e5ff;">0.00</div><div class="card-unit">nm</div></div>
+                <div class="card"><div class="card-header">KONST. NORMALISASI</div><div class="card-value" id="valNorm" style="color: #ff00ff;">0.000</div><div class="card-unit">nm<sup>-1/2</sup></div></div>
+                <div class="card"><div class="card-header">FREK. SUDUT (&omega;)</div><div class="card-value" id="valFreq" style="color: #ff9800;">0.00</div><div class="card-unit">&times; 10<sup>15</sup> rad/s</div></div>
+                <div class="card"><div class="card-header">PROBABILITAS MAX</div><div class="card-value" id="valProb" style="color: #00ff00;">0.000</div><div class="card-unit">|&Psi;|<sup>2</sup> (nm<sup>-1</sup>)</div></div>
+                <div class="card"><div class="card-header">WAKTU (t)</div><div class="card-value" id="valTime" style="color: #aaa;">0.0</div><div class="card-unit">fs</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="about" class="page">
+        <div style="text-align: center; margin-bottom: 50px;">
+            <h2 style="color: var(--accent); font-size: 2.5rem; margin-bottom: 10px;">Kelompok 9</h2>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">PSPF 2023 C - Fisika - FMIPA - Universitas Negeri Medan</p>
+        </div>
+        
+        <div class="grid-layout">
+            <div class="member-card">
+                <div class="member-avatar">L</div>
+                <h3>Lourensia Bravini Lahera</h3>
+                <p class="nim">NIM: 4233121048</p>
+                <a href="https://instagram.com/lou___04" target="_blank" class="ig-link">@lou___04</a>
+            </div>
+            <div class="member-card">
+                <div class="member-avatar">S</div>
+                <h3>Septi Maria Gultom</h3>
+                <p class="nim">NIM: 4233121052</p>
+                <a href="https://instagram.com/septi.m18_" target="_blank" class="ig-link">@septi.m18_</a>
+            </div>
+            <div class="member-card">
+                <div class="member-avatar">I</div>
+                <h3>Indah Vanesa br. Ginting</h3>
+                <p class="nim">NIM: 4233121016</p>
+                <a href="https://instagram.com/ecaaa_bubbuu" target="_blank" class="ig-link">@ecaaa_bubbuu</a>
+            </div>
+            <div class="member-card">
+                <div class="member-avatar">M</div>
+                <h3>Michelle Belinda</h3>
+                <p class="nim">NIM: 4233121021</p>
+                <a href="https://instagram.com/bellindaaa_03" target="_blank" class="ig-link">@bellindaaa_03</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================
+        // 1. NAVIGASI HALAMAN (TABS)
+        // =========================================================
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.add('active');
+            if(document.getElementById('nav-' + pageId)) {
+                document.getElementById('nav-' + pageId).classList.add('active');
+            }
+
+            if (pageId === 'simulasi') {
+                resizeCanvas();
+            }
+        }
+
+        // =========================================================
+        // 2. TEMA (SIANG/MALAM)
+        // =========================================================
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            let isLightMode = document.documentElement.getAttribute('data-theme') === 'light';
+            document.documentElement.setAttribute('data-theme', isLightMode ? 'dark' : 'light');
+            this.textContent = isLightMode ? '☀️ Mode Siang' : '🌙 Mode Malam';
+        });
+
+        // =========================================================
+        // 3. VARIABEL & ENGINE SIMULASI
+        // =========================================================
+        const canvas = document.getElementById('quantumCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvasContainer');
+        
+        let isPlaying = false, timeSteps = 0;
+        let mouseX = -1000, mouseY = -1000, isHovering = false;
+
+        const sliders = { 
+            n: document.getElementById('nSlider'), l: document.getElementById('lSlider'), 
+            m: document.getElementById('mSlider'), a: document.getElementById('aSlider'), speed: document.getElementById('speedSlider') 
+        };
+        const labels = { 
+            n: document.getElementById('lblN'), l: document.getElementById('lblL'), 
+            m: document.getElementById('lblM'), a: document.getElementById('lblA'), speed: document.getElementById('lblSpeed') 
+        };
+
+        // Resize Canvas (Dipanggil saat ukuran layar berubah)
+        function resizeCanvas() {
+            const rect = container.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Interaksi Mouse HANYA untuk Hover (Fitur Zoom & Pan Resmi Dihapus)
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect(); 
+            mouseX = e.clientX - rect.left; 
+            mouseY = e.clientY - rect.top; 
+            isHovering = true;
+        });
+        canvas.addEventListener('mouseleave', () => { isHovering = false; });
+
+        function updateSliderLabels() {
+            labels.n.textContent = sliders.n.value;
+            labels.l.textContent = sliders.l.value + " nm";
+            labels.m.textContent = parseFloat(sliders.m.value).toFixed(1) + " mₑ";
+            labels.a.textContent = parseFloat(sliders.a.value).toFixed(1);
+            labels.speed.textContent = sliders.speed.value;
+        }
+        Object.values(sliders).forEach(slider => slider.addEventListener('input', updateSliderLabels));
+
+        // Logika Tombol Play / Pause / Reset
+        document.getElementById('btnPlay').onclick = function() { 
+            isPlaying = true; 
+            this.classList.add('active'); 
+            document.getElementById('btnPause').classList.remove('active'); 
+        };
+        document.getElementById('btnPause').onclick = function() { 
+            isPlaying = false; 
+            this.classList.add('active'); 
+            document.getElementById('btnPlay').classList.remove('active'); 
+        };
+        document.getElementById('btnReset').onclick = function() {
+            isPlaying = false; 
+            timeSteps = 0;
+            sliders.n.value = 1; sliders.l.value = 10; sliders.m.value = 1.0; sliders.a.value = 1.0; sliders.speed.value = 30;
+            document.getElementById('btnPause').classList.add('active'); 
+            document.getElementById('btnPlay').classList.remove('active'); 
+            updateSliderLabels();
+        };
+
+        // =========================================================
+        // 4. RENDERING ENGINE (Fisika & Grafik)
+        // =========================================================
+        function drawFrame() {
+            if (document.getElementById('simulasi').classList.contains('active')) {
+                
+                const dpr = window.devicePixelRatio || 1;
+                const rectWidth = canvas.width;
+                const rectHeight = canvas.height;
+
+                // Cek agar canvas tidak mengecil jadi nol
+                if (rectWidth === 0) resizeCanvas();
+
+                // Bersihkan Kanvas Total (Mode Koordinat Absolut, tanpa Scale)
+                ctx.clearRect(0, 0, rectWidth, rectHeight);
+
+                // Ambil Nilai dari Slider
+                const n = parseInt(sliders.n.value);
+                const L_val = parseFloat(sliders.l.value);
+                const m_val = parseFloat(sliders.m.value);
+                const A_user = parseFloat(sliders.a.value);
+                const speed = parseInt(sliders.speed.value);
+
+                // Setup Skala Lebar Visual
+                // Kita buat lebar maksimal sumur mengambil 80% dari layar kanvas
+                const visualBaseWidth = rectWidth * 0.8; 
+                const maxL = 40; 
+                // Lebar visual aktual sumur saat ini
+                const currentVisualWidth = (L_val / maxL) * visualBaseWidth; 
+
+                // Tentukan Titik Awal (Origin) Menggambar agar selalu di tengah Layar
+                const startX = (rectWidth - currentVisualWidth) / 2;
+                const startY = rectHeight * 0.7; // Dasar sumur berada di 70% dari atas layar
+
+                let isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                const gridColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+                const axisColor = isLight ? '#666' : '#888';
+                const wallColor = isLight ? '#0284c7' : '#00e5ff';
+                const shadowColorPsi = isLight ? 'rgba(0, 150, 255, 0.15)' : 'rgba(0, 229, 255, 0.2)';
+                const lineColorPsi = (n % 2 === 0) ? (isLight ? '#c2185b' : '#ff00ff') : (isLight ? '#009688' : '#00e5ff');
+
+                // A. Gambar Kisi Background
+                ctx.strokeStyle = gridColor; ctx.lineWidth = 1; ctx.beginPath();
+                // Grid Vertikal (tiap jarak setara 5 nm)
+                let stepX = visualBaseWidth / maxL * 5;
+                for (let i = startX; i <= startX + currentVisualWidth; i += stepX) { ctx.moveTo(i, 0); ctx.lineTo(i, rectHeight); }
+                for (let i = startX; i >= 0; i -= stepX) { ctx.moveTo(i, 0); ctx.lineTo(i, rectHeight); }
+                for (let i = startY; i >= 0; i -= (50 * dpr)) { ctx.moveTo(0, i); ctx.lineTo(rectWidth, i); }
+                ctx.stroke();
+
+                // B. Sumbu Koordinat X dan Y
+                ctx.strokeStyle = axisColor; ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, startY); ctx.lineTo(rectWidth, startY); // Sumbu X (Dasar Sumur)
+                ctx.moveTo(startX, rectHeight); ctx.lineTo(startX, 0); // Sumbu Y (Dinding Kiri x=0)
+                ctx.stroke();
+                
+                ctx.fillStyle = isLight ? '#000' : '#fff'; ctx.font = `bold ${14*dpr}px Arial`;
+                ctx.fillText("x = 0", startX - (45*dpr), startY + (20*dpr));
+                ctx.fillText(`x = L`, startX + currentVisualWidth + (10*dpr), startY + (20*dpr));
+
+                // C. Kalkulasi Fisika (AKURAT UNTUK PENGHITUNGAN MANUAL)
+                if (isPlaying) {
+                    timeSteps += (speed * 0.02); // Waktu Berjalan
+                }
+
+                // Konstanta Fisika 0.3761 eV.nm^2 diperoleh dari turunan h^2 / (8 * m_e)
+                const const_E = 0.3761; 
+                const E_actual = (const_E * n * n) / (m_val * L_val * L_val);
+                const lambda = (2 * L_val) / n; 
+                const freq = E_actual * 1.519; // dalam 10^15 rad/s
+                const normConst = Math.sqrt(2 / L_val) * A_user; 
+                const maxProb = (2 / L_val) * (A_user * A_user);
+                const phase = freq * timeSteps;
+
+                // Skala Tinggi (Y) untuk Grafis
+                const scaleY = (120 * dpr) / (n * n);
+
+                // D. Garis Tingkat Energi
+                for (let i = 1; i <= Math.min(n + 3, 10); i++) {
+                    let eY = startY - (i * i * scaleY);
+                    ctx.strokeStyle = (i === n) ? (isLight ? '#f57f17' : '#ffeb3b') : (isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)');
+                    ctx.setLineDash((i === n) ? [8, 8] : [4, 4]);
+                    ctx.lineWidth = (i === n) ? 2 : 1;
+                    ctx.beginPath(); ctx.moveTo(startX, eY); ctx.lineTo(startX + currentVisualWidth, eY); ctx.stroke();
+                    
+                    ctx.fillStyle = ctx.strokeStyle; ctx.font = `bold ${12*dpr}px Arial`;
+                    ctx.fillText(`E${i}`, startX + currentVisualWidth + (10*dpr), eY + (4*dpr));
+                }
+                ctx.setLineDash([]);
+
+                // E. Dinding Sumur (Tepat di x=0 dan x=L)
+                ctx.shadowBlur = isLight ? 0 : 15; ctx.shadowColor = wallColor; 
+                ctx.strokeStyle = wallColor; ctx.lineWidth = 4;
+                ctx.beginPath(); 
+                ctx.moveTo(startX, startY); ctx.lineTo(startX, 0); 
+                ctx.moveTo(startX + currentVisualWidth, startY); ctx.lineTo(startX + currentVisualWidth, 0); 
+                ctx.stroke();
+                ctx.shadowBlur = 0; 
+
+                // F. Gambar Grafik Probabilitas & Fungsi Gelombang
+                const baseLineY = startY - (n * n * scaleY);
+                const amplitudeVisual = 60 * dpr * A_user; 
+                const probScaleVisual = 100 * dpr * A_user * A_user; 
+
+                // Bayangan Area Probabilitas |Psi|^2
+                ctx.beginPath(); ctx.moveTo(startX, baseLineY);
+                for (let x = 0; x <= currentVisualWidth; x++) {
+                    let xNorm = x / currentVisualWidth;
+                    let probY = baseLineY - (Math.pow(Math.sin(n * Math.PI * xNorm), 2) * probScaleVisual);
+                    ctx.lineTo(startX + x, probY);
+                }
+                ctx.lineTo(startX + currentVisualWidth, baseLineY); 
+                ctx.fillStyle = shadowColorPsi; ctx.fill();
+
+                // Osilasi Fungsi Gelombang Real
+                ctx.shadowBlur = isLight ? 0 : 10; ctx.shadowColor = lineColorPsi;
+                ctx.strokeStyle = lineColorPsi; ctx.lineWidth = 3;
+                ctx.beginPath();
+                for (let x = 0; x <= currentVisualWidth; x++) {
+                    let xNorm = x / currentVisualWidth; 
+                    let y = baseLineY - (Math.sin(n * Math.PI * xNorm) * Math.cos(phase) * amplitudeVisual); 
+                    if (x === 0) ctx.moveTo(startX + x, y); else ctx.lineTo(startX + x, y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0; 
+
+                // G. Tooltip Hover (DIJAMIN 100% PRESISI DAN MENEMPEL)
+                if (isHovering) {
+                    let mouseX_dpr = mouseX * dpr;
+                    
+                    // Cek jika Kursor ada di antara dinding sumur
+                    if (mouseX_dpr >= startX && mouseX_dpr <= startX + currentVisualWidth) {
+                        
+                        let xNorm = (mouseX_dpr - startX) / currentVisualWidth; 
+                        let psiVal = Math.sin(n * Math.PI * xNorm) * Math.cos(phase);
+                        
+                        // Posisi Titik Putih (Y ditarik persis dari persamaan gelombang)
+                        let dotY = baseLineY - (psiVal * amplitudeVisual);
+
+                        // Gambar Titik Putih Menempel di Gelombang
+                        ctx.beginPath(); ctx.arc(mouseX_dpr, dotY, 6 * dpr, 0, Math.PI * 2);
+                        ctx.fillStyle = isLight ? '#000' : '#fff'; ctx.fill();
+                        ctx.strokeStyle = lineColorPsi; ctx.lineWidth = 2; ctx.stroke();
+
+                        // Data Asli Fisika di Titik Hover
+                        let trueX = xNorm * L_val;
+                        let truePsi = normConst * psiVal;
+                        let trueProb = maxProb * Math.pow(Math.sin(n * Math.PI * xNorm), 2);
+
+                        // Gambar Kotak Info Tooltip
+                        let boxW = 150 * dpr, boxH = 75 * dpr;
+                        let boxX = mouseX_dpr + (15 * dpr); 
+                        if (boxX + boxW > rectWidth) boxX = mouseX_dpr - boxW - (15 * dpr);
+                        let boxY = dotY - boxH - (10 * dpr);
+                        
+                        ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 15, 15, 0.95)';
+                        ctx.strokeStyle = isLight ? '#ccc' : '#444'; ctx.lineWidth = 1;
+                        ctx.fillRect(boxX, boxY, boxW, boxH); ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+                        ctx.font = `bold ${12*dpr}px Arial`;
+                        ctx.fillStyle = isLight ? '#00897b' : '#00ffcc'; ctx.fillText(`Posisi x = ${trueX.toFixed(2)} nm`, boxX + (10*dpr), boxY + (20*dpr));
+                        ctx.fillStyle = isLight ? '#e65100' : '#ff9800'; ctx.fillText(`Nilai Ψ = ${truePsi.toFixed(3)}`, boxX + (10*dpr), boxY + (40*dpr));
+                        ctx.fillStyle = isLight ? '#6a1b9a' : '#ff00ff'; ctx.fillText(`Prob |Ψ|² = ${trueProb.toFixed(3)}`, boxX + (10*dpr), boxY + (60*dpr));
+                    }
+                }
+
+                // H. Update UI Teks di Panel Pengukuran
+                document.getElementById('valEnergy').textContent = E_actual.toFixed(4);
+                document.getElementById('valWavelength').textContent = lambda.toFixed(2);
+                document.getElementById('valNorm').textContent = normConst.toFixed(3);
+                document.getElementById('valFreq').textContent = freq.toFixed(2);
+                document.getElementById('valProb').textContent = maxProb.toFixed(3);
+            }
+            
+            requestAnimationFrame(drawFrame);
+        }
+
+        // =========================================================
+        // 6. INISIALISASI SETELAH SEMUA DIMUAT
+        // =========================================================
+        window.addEventListener('load', function() {
+            // Render Math (Hanya untuk blok rumus besar agar aman)
+            try {
+                renderMathInElement(document.body, {
+                    delimiters: [ {left: "$$", right: "$$", display: true} ],
+                    throwOnError : false
+                });
+            } catch(e) { console.log("KaTeX Error: Lanjutkan tanpa rendering Math"); }
+            
+            resizeCanvas();
+            updateSliderLabels();
+            drawFrame();
+        });
+    </script>
+</body>
+</html>
